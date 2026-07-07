@@ -1,0 +1,164 @@
+---
+title: "تمرین رگرسیون پواسون"
+author: "شادان احمدابادی 4022011004"
+date: "2026-07-07"
+output: html_document
+toc: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+# ۱. مقدمه
+
+در این تمرین، مدل رگرسیون پواسون را برای داده‌های *تعداد ماهواره‌های خرچنگ‌های نعل‌اسبی برآورد می‌کنیم.
+
+## متغیرهای مورد استفاده:
+- **C (رنگ)**: ۴ سطح (۱ تا ۴)
+- **S (وضعیت ستون فقرات)**: ۳ سطح (۱ تا ۳)
+- **W (پهنای پشت)**: متغیر کمی
+- **Wt (وزن)**: متغیر کمی
+- **Sa (تعداد ماهواره‌ها)**: متغیر پاسخ
+
+---
+
+# ۲. روش اول: برآورد با nlm
+
+## ۲.۱. بارگذاری داده و ساخت متغیرهای مجازی
+
+```{r data-loading}
+# بارگذاری داده
+if (!require(readxl)) {
+  install.packages("readxl")}
+
+df <- read_excel("C:/Users/Lenovo/Downloads/Crabs.xlsx")
+names(df) <- tolower(names(df))
+
+# ساخت متغیرهای مجازی
+df$c2 <- ifelse(df$c == 2, 1, 0)
+df$c3 <- ifelse(df$c == 3, 1, 0)
+df$c4 <- ifelse(df$c == 4, 1, 0)
+df$s2 <- ifelse(df$s == 2, 1, 0)
+df$s3 <- ifelse(df$s == 3, 1, 0)
+
+# نمایش داده‌ها
+head(df)
+```
+
+## ۲.۲. تابع منفی لگ‌درست‌نمایی
+
+```{r nll-function}
+nloglik_loglinear <- function(theta, y, c2, c3, c4, s2, s3, w, wt) {
+  beta <- theta
+  eta <- beta[1] + beta[2]*c2 + beta[3]*c3 + beta[4]*c4 +
+         beta[5]*s2 + beta[6]*s3 + beta[7]*w + beta[8]*wt
+  lambda <- exp(eta)
+  nll <- -sum(dpois(y, lambda, log = TRUE))
+  return(nll)
+}
+```
+
+## ۲.۳. بهینه‌سازی با nlm
+
+```{r nlm-optimization}
+init <- c(log(mean(df$sa)), rep(0, 7))
+
+result_nlm <- nlm(
+  f = nloglik_loglinear,
+  p = init,
+  y = df$sa,
+  c2 = df$c2,
+  c3 = df$c3,
+  c4 = df$c4,
+  s2 = df$s2,
+  s3 = df$s3,
+  w = df$w,
+  wt = df$wt
+)
+
+coef_nlm <- result_nlm$estimate
+names(coef_nlm) <- c("(Intercept)", "c2", "c3", "c4", "s2", "s3", "w", "wt")
+print(coef_nlm)
+```
+
+---
+
+# ۳. روش دوم: برآورد با glm
+
+```{r glm-model}
+model_glm <- glm(sa ~ c2 + c3 + c4 + s2 + s3 + w + wt,
+                 data = df,
+                 family = poisson(link = "log"))
+
+coef_glm <- coef(model_glm)
+names(coef_glm) <- c("(Intercept)", "c2", "c3", "c4", "s2", "s3", "w", "wt")
+print(coef_glm)
+```
+
+---
+
+# ۴. مقایسه ضرایب
+
+```{r comparison}
+comparison <- data.frame(
+  ضریب = names(coef_nlm),
+  nlm = round(coef_nlm, 6),
+  glm = round(coef_glm, 6),
+  تفاوت = round(coef_nlm - coef_glm, 8)
+)
+
+
+```
+
+---
+
+# ۵. پاسخ به سوال استاد
+
+**سوال:** ضرایب به دست آمده از nlm را با ضرایب glm مقایسه کنید. آیا دقیقاً یکی هستند؟ اگر تفاوت ناچیزی در حد اعشار دارند، علت آن چیست؟
+
+**پاسخ:**
+
+ضرایب دو روش کاملاً یکسان نیستند و تفاوت‌هایی در حد چند رقم اعشار دارند.
+
+**دلایل اصلی:**
+1. **الگوریتم‌های بهینه‌سازی متفاوت:**
+   - nlm از الگوریتم Newton-type استفاده می‌کند
+   - glm از الگوریتم IRLS استفاده می‌کند
+
+2. **معیارهای توقف متفاوت**
+
+3. **مقدار اولیه متفاوت**
+
+با وجود این تفاوت‌های جزئی، هر دو روش به نتایج بسیار نزدیکی می‌رسند که نشان‌دهنده اعتبار هر دو روش است.
+
+---
+
+# ۶. نتیجه‌گیری
+
+در این تمرین، مدل رگرسیون پواسون را با دو روش برآورد کردیم:
+1. روش MLE با nlm
+2. روش glm
+
+نتایج نشان داد که هر دو روش به ضرایب بسیار نزدیکی می‌رسند
