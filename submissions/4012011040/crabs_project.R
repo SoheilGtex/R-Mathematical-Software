@@ -1,6 +1,6 @@
 install.packages("readxl")
 library(readxl)
-df = as.data.frame(read_xlsx("data/Crabs.xlsx"))
+df = as.data.frame(read_xlsx("Crabs.xlsx"))
 
 df$C = factor(df$C)
 df$S = factor(df$S)
