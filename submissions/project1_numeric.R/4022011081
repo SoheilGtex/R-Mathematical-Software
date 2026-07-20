@@ -1,1 +1,57 @@
+library(readxl)
+df = as.data.frame(read_xlsx("E:\\Uni\\نرم افزار\\Crabs.xlsx"))
+df <- na.omit(df)
+
+df$C = factor(df$C)
+df$S = factor(df$S)
+
+df$C2= ifelse(df$C == 2, 1, 0)
+df$C3= ifelse(df$C == 3, 1, 0)
+df$C4= ifelse(df$C == 4, 1, 0)
+
+df$S2= ifelse(df$S == 2, 1, 0)
+df$S3= ifelse(df$S == 3, 1, 0)
+
+set.seed(42)
+n = nrow(df)
+train_idx = sample(1:n, floor(0.8*n))
+train_data = df[train_idx,]
+test_data = df[-train_idx,]
+
+n_train = nrow(train_data)
+
+nloglik_loglinear <- function(theta){
+  b0 = theta[1]
+  b1 = theta[2]
+  b2 = theta[3]
+  b3 = theta[4]
+  b4 = theta[5]
+  b5 = theta[6]
+  b6 = theta[7]
+  b7 = theta[8]
+  
+  probs = numeric(n_train)
+  
+  for(i in 1:n_train){
+    lp = b0 + b1*train_data$C2[i]+b2*train_data$C3[i]+b3*train_data$C4[i]+
+      b4*train_data$S2[i]+b5*train_data$S3[i]+b6*train_data$W[i]+b7*train_data$Wt[i]
+    
+    lambda_i = exp(lp)
+    
+    probs[i] = dpois(train_data$Sa[i], lambda = lambda_i)
+  }
+  likelihood = -sum(log(probs))
+  return(likelihood)
+}
+
+
+theta0_0 = log(mean(df$Sa))
+theta0 = c(theta0_0, rep(0,7))
+
+mle_result = nlminb(theta0, nloglik_loglinear,
+                    lower = rep(-Inf, 8), upper = rep(Inf, 8))
+
+glm_result = glm(Sa ~ C2+C3+C4+S2+S3+W+Wt, 
+                 family = poisson(link = "log"), 
+                 data = train_data)
 
