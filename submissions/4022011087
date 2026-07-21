@@ -1,1 +1,176 @@
+> #Ailar Naeemi Project
+> rm(list= ls())
+> install.package("readxl")
+Error in install.package("readxl") : 
+  could not find function "install.package"
+> library(readxl)
+Error in library(readxl) : there is no package called ‘readxl’
+> data<-read_excel("D:/Crabs.xlsx")
+Error in read_excel("D:/Crabs.xlsx") : 
+  could not find function "read_excel"
+> getwd()
+[1] "C:/Users/Admin/Documents"
+> list.files()
+ [1] "ailarnaeemi.pbix"                "coffeepowerbi.pbix"              "Custom Office Templates"         "desktop.ini"                    
+ [5] "Doc1.docx"                       "ghp.docx"                        "GTA San Andreas User Files"      "IBM"                            
+ [9] "ju.mw"                           "My Music"                        "My Pictures"                     "My Videos"                      
+[13] "Power BI Desktop"                "SQL Server Management Studio"    "SQL Server Management Studio 21" "statistics 1.sav"               
+[17] "جشنواره حرکت.docx"              
+> setwd("D:/")
+Error in setwd("D:/") : cannot change working directory
+> data<- read_excel("Crabs.xlsx")
+Error in read_excel("Crabs.xlsx") : could not find function "read_excel"
+> library(readxl)
+Error in library(readxl) : there is no package called ‘readxl’
+> data<-read_excel("C:/User/Ailar/Downloads/Crabs.xlsx")
+Error in read_excel("C:/User/Ailar/Downloads/Crabs.xlsx") : 
+  could not find function "read_excel"
+> > install.package("readxl")
+Error: unexpected '>' in ">"
+> > install.package("readxl")
+Error: unexpected '>' in ">"
+> install.package("readxl")
+Error in install.package("readxl") : 
+  could not find function "install.package"
+> install.packages("readxl")
+Warning in install.packages("readxl") :
+  'lib = "C:/Program Files/R/R-4.6.1/library"' is not writable
+--- Please select a CRAN mirror for use in this session ---
+also installing the dependencies ‘glue’, ‘utf8’, ‘rematch’, ‘cli’, ‘lifecycle’, ‘magrittr’, ‘pillar’, ‘pkgconfig’, ‘rlang’, ‘vctrs’, ‘crayon’, ‘hms’, ‘prettyunits’, ‘R6’, ‘cellranger’, ‘tibble’, ‘cpp11’, ‘progress’
 
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/glue_1.8.1.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/utf8_1.2.6.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/rematch_2.0.0.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/cli_3.6.6.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/lifecycle_1.0.5.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/magrittr_2.0.5.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/pillar_1.11.1.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/pkgconfig_2.0.3.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/rlang_1.3.0.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/vctrs_0.7.3.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/crayon_1.5.3.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/hms_1.1.4.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/prettyunits_1.2.0.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/R6_2.6.1.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/cellranger_1.1.0.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/tibble_3.3.1.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/cpp11_0.5.5.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/progress_1.2.3.zip'
+trying URL 'https://cloud.r-project.org/bin/windows/contrib/4.6/readxl_1.5.0.zip'
+package ‘glue’ successfully unpacked and MD5 sums checked
+package ‘utf8’ successfully unpacked and MD5 sums checked
+package ‘rematch’ successfully unpacked and MD5 sums checked
+package ‘cli’ successfully unpacked and MD5 sums checked
+package ‘lifecycle’ successfully unpacked and MD5 sums checked
+package ‘magrittr’ successfully unpacked and MD5 sums checked
+package ‘pillar’ successfully unpacked and MD5 sums checked
+package ‘pkgconfig’ successfully unpacked and MD5 sums checked
+package ‘rlang’ successfully unpacked and MD5 sums checked
+package ‘vctrs’ successfully unpacked and MD5 sums checked
+package ‘crayon’ successfully unpacked and MD5 sums checked
+package ‘hms’ successfully unpacked and MD5 sums checked
+package ‘prettyunits’ successfully unpacked and MD5 sums checked
+package ‘R6’ successfully unpacked and MD5 sums checked
+package ‘cellranger’ successfully unpacked and MD5 sums checked
+package ‘tibble’ successfully unpacked and MD5 sums checked
+package ‘cpp11’ successfully unpacked and MD5 sums checked
+package ‘progress’ successfully unpacked and MD5 sums checked
+package ‘readxl’ successfully unpacked and MD5 sums checked
+
+The downloaded binary packages are in
+        C:\Users\Admin\AppData\Local\Temp\RtmpAf3G76\downloaded_packages
+> library(readxl)
+> data<- read_excel("C:/User/Ailar/Downloads/Crabs.xlsx")
+Error: `path` does not exist: ‘C:/User/Ailar/Downloads/Crabs.xlsx’
+> data<- read_excel("C:/Users/Admin/Downloads/Crabs.xlsx")
+
+-
+/
+                                                                                                                                                                     
+
+/
+                                                                                                                                                                     
+
+-
+                                                                                                                                                                     
+> head(data)
+# A tibble: 6 × 5
+      C     S     W    Wt    Sa
+  <dbl> <dbl> <dbl> <dbl> <dbl>
+1     2     3  28.3  3.05     8
+2     3     3  26    2.6      4
+3     3     3  25.6  2.15     0
+4     4     2  21    1.85     0
+5     2     3  29    3        1
+6     1     2  25    2.3      3
+> names(data)
+[1] "C"  "S"  "W"  "Wt" "Sa"
+> #Creat Dummy Variables
+> data$C2 <- ifelse(data$C==2, 1 ,0)
+> data$C3 <- ifelse(data$C == 3,1,0)
+> data$C4 <- ifelse(data$C == 4,1,0)
+> data$C1 <- ifelse(data$C == 1,1,0)
+> 
+> S1< <- ifelse(data$S == 1,1,0)
+Error: unexpected assignment in "S1< <-"
+> S1 <- ifelse(data$S == 1,1,0)
+> S2 <- ifelse(data$S == 2,1,0)
+> S3 <- ifelse(data$S == 3,1,0)
+> #Continuous Variables
+> W1 <- data$W1
+Warning message:
+Unknown or uninitialised column: `W1`. 
+> W <- data$W
+> Wt <- data$Wt
+> y <- data$Sa
+> #Negative Log likelihood function
+> nloglik_Poisson<- function(theta, y, C1,C2,C3,C4, S1,S2,S3, W, Wt){
++ beta0 <- theta[1]
++ beta1 <- theta[2]
++ beta2 <- theta[3]
++ beta3 <- theta[4]
++ beta4 <- theta[5]
++ beta5 <- theta[6]
++ beta6 <- theta[7]
++ beta7 <- theta[8]#Wt
++ #Linear Predictor
++ eta <- beta0 + beta1*C2 + beta2*C3 +beta3*C4 + beta4*S2 + beta5*S3 + beta6*W + beta7*Wt
++ #mean
++ lambda<- exp(eta)
++ n<- length(y)
++ log_lik <- 0
++ for ( i in 1:n) { 
++  log_lik <- log_lik + dpois(y[i], lambda[i], log = TRUE)
++  }
++ return(-log_lik)
++ }
+> #Optimization
+> # Initial Value
+> initial_theta<- rep(0,8)
+> #Optimize 
+> result <- optim(initial_theta, nloglik_poisson, y=y, C2= data$C2, C3= data$C3,C4= data$C4,S2= data$S2,
++ S3= data$S3, W=W, Wt =Wt, method = "BFGS", hessian= TRUE)
+Error: object 'nloglik_poisson' not found
+> estimates <- result$par
+Error: object 'result' not found
+> names(estimates)<- c("beta0","beta1", "beta2", "beta3", "beta4","beta5" , "beta6", "beta7")
+Error: object 'estimates' not found
+> if (!is.null(result$hessian)){
++ fisher_info<- solve(result$hessian)
++ se<- sqrt(diag(fisher_info))
++ names(se)<- names(estimates)
++ print(se)
++ glm_fit <- glm(sa -C2+C3+C4+S2+S3+W +Wt,family= poisson(link="log"), data= data)
++ summary(glm_fit)
++ #Compare coefficients
++ comparison<- data.frame(MLE = round(estimate, 4),
++ GLM= round(coef(glm_fit),4)}
+Error: unexpected '}' in:
+"comparison<- data.frame(MLE = round(estimate, 4),
+GLM= round(coef(glm_fit),4)}"
+> print(comparison
++ print(comparison)
+Error: unexpected symbol in:
+"print(comparison
+print"
+> cat("\nAssigment complete!\n")
