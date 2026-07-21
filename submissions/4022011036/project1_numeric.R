@@ -1,87 +1,130 @@
-# Project 1 - Mathematical Software
-# Abolfazl Rahimi | 4022011036
-# Poisson-model MLE using nlminb, with a comparison to glm
+# Project 1
+# Estimation of a Poisson regression model using Maximum Likelihood
 
-# Read Crabs.xlsx (stored next to this script) without external packages.
-# The supplied workbook has one sheet and five numeric columns.
-read_crabs_xlsx <- function(path) {
-  con <- unz(path, "xl/worksheets/sheet1.xml")
-  on.exit(close(con), add = TRUE)
-  xml <- paste(readLines(con, warn = FALSE), collapse = "")
-  values <- regmatches(xml, gregexpr("(?<=<v>)[^<]+(?=</v>)", xml, perl = TRUE))[[1]]
-  values <- as.numeric(values)
-  data <- as.data.frame(matrix(values, ncol = 5, byrow = TRUE))
-  names(data) <- c("C", "S", "W", "Wt", "Sa")
-  data
-}
+library(readxl)
 
-# Resolve the data-file path independently of the working directory.
-args <- commandArgs(trailingOnly = FALSE)
-file_arg <- args[grepl("^--file=", args)]
-if (length(file_arg) == 0L) {
-  stop("Run this script with Rscript so that the data-file path can be resolved.")
-}
-script_path <- normalizePath(sub("^--file=", "", file_arg[1]))
-data_path <- file.path(dirname(script_path), "Crabs.xlsx")
-if (!file.exists(data_path)) stop("Crabs.xlsx was not found next to the script.")
+# ------------------------------------------------------------
+# 1. Read the crab dataset
+# ------------------------------------------------------------
 
-train_data <- read_crabs_xlsx(data_path)
+data_crab <- read_excel("Crabs.xlsx")
 
-# Step 1: Dummy coding; C = 1 and S = 1 are the reference levels.
-train_data$C2 <- ifelse(train_data$C == 2, 1, 0)
-train_data$C3 <- ifelse(train_data$C == 3, 1, 0)
-train_data$C4 <- ifelse(train_data$C == 4, 1, 0)
-train_data$S2 <- ifelse(train_data$S == 2, 1, 0)
-train_data$S3 <- ifelse(train_data$S == 3, 1, 0)
+# ------------------------------------------------------------
+# 2. Generate indicator variables
+# ------------------------------------------------------------
 
-X <- as.matrix(train_data[, c("C2", "C3", "C4", "S2", "S3", "W", "Wt")])
-y <- train_data$Sa
+# Color indicators: color 1 is the reference category
+data_crab$C2 <- ifelse(data_crab$C == 2, 1L, 0L)
+data_crab$C3 <- ifelse(data_crab$C == 3, 1L, 0L)
+data_crab$C4 <- ifelse(data_crab$C == 4, 1L, 0L)
 
-# Step 2: Negative Poisson log-likelihood.
-# theta contains beta0 through beta7. log = TRUE prevents numerical underflow.
-nloglik_loglinear <- function(theta) {
-  linear_predictor <- theta[1] + X %*% theta[2:8]
-  lambda <- exp(pmin(linear_predictor, log(.Machine$double.xmax)))
-  -sum(dpois(y, lambda = lambda, log = TRUE))
-}
+# Spine indicators: spine 1 is the reference category
+data_crab$S2 <- ifelse(data_crab$S == 2, 1L, 0L)
+data_crab$S3 <- ifelse(data_crab$S == 3, 1L, 0L)
 
-# Step 3: Numerical optimization with the requested starting values.
-theta0 <- c(log(mean(y)), rep(0, 7))
-fit_nlminb <- nlminb(
-  start = theta0,
-  objective = nloglik_loglinear,
-  lower = rep(-Inf, 8),
-  upper = rep(Inf, 8)
+# ------------------------------------------------------------
+# 3. Construct the model matrix
+# ------------------------------------------------------------
+
+design_matrix <- cbind(
+  Intercept = 1,
+  C2 = data_crab$C2,
+  C3 = data_crab$C3,
+  C4 = data_crab$C4,
+  S2 = data_crab$S2,
+  S3 = data_crab$S3,
+  W = data_crab$W,
+  Wt = data_crab$Wt
 )
 
-coef_names <- c("(Intercept)", "C2", "C3", "C4", "S2", "S3", "W", "Wt")
-coef_nlminb <- setNames(fit_nlminb$par, coef_names)
+response <- data_crab$Sa
 
-# Step 4: Equivalent glm fit; factor() keeps the first level as the reference.
-fit_glm <- glm(
-  Sa ~ factor(C) + factor(S) + W + Wt,
-  data = train_data,
+# ------------------------------------------------------------
+# 4. Define the negative log-likelihood function
+# ------------------------------------------------------------
+
+negative_log_likelihood <- function(beta) {
+
+  # Linear predictor
+  linear_predictor <- as.vector(design_matrix %*% beta)
+
+  # Expected number of satellites
+  expected_count <- exp(linear_predictor)
+
+  # Log-likelihood of the Poisson distribution
+  log_likelihood <- sum(
+    dpois(
+      x = response,
+      lambda = expected_count,
+      log = TRUE
+    )
+  )
+
+  # nlminb minimizes the objective function
+  return(-log_likelihood)
+}
+
+# ------------------------------------------------------------
+# 5. Choose initial parameter values
+# ------------------------------------------------------------
+
+starting_values <- numeric(ncol(design_matrix))
+starting_values[1] <- log(mean(response))
+
+# ------------------------------------------------------------
+# 6. Estimate parameters using maximum likelihood
+# ------------------------------------------------------------
+
+manual_poisson_fit <- nlminb(
+  start = starting_values,
+  objective = negative_log_likelihood
+)
+
+manual_estimates <- manual_poisson_fit$par
+names(manual_estimates) <- colnames(design_matrix)
+
+cat("Maximum likelihood estimates using nlminb:\n")
+print(manual_estimates)
+
+# ------------------------------------------------------------
+# 7. Estimate the same model using glm
+# ------------------------------------------------------------
+
+poisson_glm_fit <- glm(
+  Sa ~ C2 + C3 + C4 + S2 + S3 + W + Wt,
+  data = data_crab,
   family = poisson(link = "log")
 )
-coef_glm <- coef(fit_glm)
-names(coef_glm) <- coef_names
 
-comparison <- data.frame(
-  coefficient = coef_names,
-  nlminb = unname(coef_nlminb),
-  glm = unname(coef_glm),
-  absolute_difference = abs(unname(coef_nlminb) - unname(coef_glm)),
-  row.names = NULL
+glm_estimates <- coef(poisson_glm_fit)
+
+cat("\nPoisson regression estimates using glm:\n")
+print(glm_estimates)
+
+# ------------------------------------------------------------
+# 8. Compare the estimated coefficients
+# ------------------------------------------------------------
+
+coefficient_comparison <- data.frame(
+  Parameter = colnames(design_matrix),
+  Manual_MLE = unname(manual_estimates),
+  GLM_Estimate = unname(glm_estimates)
 )
 
-cat("Number of observations:", nrow(train_data), "\n")
-cat("nlminb convergence:", fit_nlminb$convergence, "(0 means success)\n")
-cat("Negative log-likelihood:", format(fit_nlminb$objective, digits = 12), "\n\n")
-print(comparison, row.names = FALSE)
-cat("\nMaximum absolute difference:", format(max(comparison$absolute_difference), digits = 8), "\n")
+coefficient_comparison$Absolute_Difference <- with(
+  coefficient_comparison,
+  abs(Manual_MLE - GLM_Estimate)
+)
 
-if (max(comparison$absolute_difference) < 1e-5) {
-  cat("Conclusion: nlminb and glm coefficients agree up to numerical precision.\n")
-} else {
-  cat("Conclusion: Small differences are likely due to tolerance and stopping criteria.\n")
-}
+cat("\nComparison of the two estimation methods:\n")
+print(coefficient_comparison)
+
+# ------------------------------------------------------------
+# 9. Display optimization information
+# ------------------------------------------------------------
+
+cat("\nOptimization convergence code:\n")
+print(manual_poisson_fit$convergence)
+
+cat("\nFinal negative log-likelihood:\n")
+print(manual_poisson_fit$objective)
