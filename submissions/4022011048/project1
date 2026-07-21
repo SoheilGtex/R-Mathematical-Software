@@ -1,0 +1,108 @@
+################################################################
+# روش دوم برآورد پارامترهای مدل: بیشینه‌سازی تابع درست‌نمایی (MLE)
+# مدل: log(lambda_i) = b0 + b1*C2 + b2*C3 + b3*C4 + b4*S2 + b5*S3 + b6*W + b7*Wt
+################################################################
+
+## ---- گام ۰: خواندن داده ----
+# مسیر فایل داده‌ی خودت را اینجا جایگزین کن
+train_data <- read.csv("train_data.csv")
+
+# نام ستون کیفی رنگ و وضعیت ستون فقرات را طبق فایل داده‌ات چک کن
+C  <- train_data$C
+S  <- train_data$S
+W  <- train_data$W
+Wt <- train_data$Wt
+Sa <- train_data$Sa
+
+## ---- گام ۱: کدگذاری متغیرهای کیفی (Dummy Coding) ----
+
+# متغیر رنگ (C): ۴ سطح دارد -> ۳ متغیر مجازی (سطح ۱ = مرجع)
+C2 <- ifelse(C == 2, 1, 0)
+C3 <- ifelse(C == 3, 1, 0)
+C4 <- ifelse(C == 4, 1, 0)
+
+# متغیر وضعیت ستون فقرات (S): ۳ سطح دارد -> ۲ متغیر مجازی (سطح ۱ = مرجع)
+S2 <- ifelse(S == 2, 1, 0)
+S3 <- ifelse(S == 3, 1, 0)
+
+train_data$C2 <- C2
+train_data$C3 <- C3
+train_data$C4 <- C4
+train_data$S2 <- S2
+train_data$S3 <- S3
+
+## ---- گام ۲: نوشتن تابع درست‌نمایی ----
+
+nloglik_loglinear <- function(theta) {
+
+  # ۱. تقسیم بردار theta به ۸ پارامتر مدل (b0 تا b7)
+  b0 <- theta[1]
+  b1 <- theta[2]
+  b2 <- theta[3]
+  b3 <- theta[4]
+  b4 <- theta[5]
+  b5 <- theta[6]
+  b6 <- theta[7]
+  b7 <- theta[8]
+
+  n <- length(Sa)
+  loglik_i <- numeric(n)  # لگاریتم احتمال هر مشاهده
+
+  # ۲. حلقه‌ی for برای محاسبه‌ی درست‌نمایی هر مشاهده
+  for (i in 1:n) {
+
+    # ۳. محاسبه‌ی linear_predictor
+    linear_predictor <- b0 + b1 * C2[i] + b2 * C3[i] + b3 * C4[i] +
+                         b4 * S2[i] + b5 * S3[i] + b6 * W[i] + b7 * Wt[i]
+
+    # ۴. محاسبه‌ی lambda_i با تابع نمایی
+    lambda_i <- exp(linear_predictor)
+
+    # ۵. احتمال مشاهده‌شدن مقدار واقعی Sa[i] با فرض توزیع پواسون
+    prob_i <- dpois(Sa[i], lambda_i)
+
+    loglik_i[i] <- log(prob_i)
+  }
+
+  # ۶. حاصل‌ضرب احتمالات تمامی مشاهدات = exp(مجموع لگاریتم‌ها)
+  #    log(prod(prob_i)) == sum(log(prob_i))  (برای جلوگیری از Underflow عددی
+  #    به‌جای ضرب مستقیم احتمالات، مجموع لگاریتم آن‌ها محاسبه می‌شود)
+  loglik <- sum(loglik_i)
+
+  # منفیِ لگاریتمِ حاصل‌ضرب را برمی‌گردانیم (چون nlminb تابع را کمینه می‌کند)
+  return(-loglik)
+}
+
+## ---- گام ۳: بهینه‌سازی عددی ----
+
+# بهترین حدس اولیه برای b0: لگاریتم میانگین کل داده‌ها
+# سایر ضرایب (b1 تا b7) صفر در نظر گرفته می‌شوند
+theta0 <- c(log(mean(Sa)), 0, 0, 0, 0, 0, 0, 0)
+
+fit <- nlminb(
+  start     = theta0,
+  objective = nloglik_loglinear,
+  lower     = rep(-Inf, 8),
+  upper     = rep(Inf, 8)
+)
+
+print(fit$par)   # پارامترهای برآوردشده با nlminb
+
+## ---- گام ۴: مقایسه با glm ----
+
+# برای اینکه glm این دو متغیر را کیفی (factor) در نظر بگیرد
+train_data$C <- factor(train_data$C)
+train_data$S <- factor(train_data$S)
+
+model_glm <- glm(Sa ~ C + S + W + Wt, data = train_data,
+                  family = poisson(link = 'log'))
+
+print(coef(model_glm))  # ضرایب برآوردشده با glm
+
+## ---- مقایسه‌ی نهایی ----
+comparison <- data.frame(
+  nlminb = fit$par,
+  glm    = coef(model_glm)
+)
+print(comparison)
+print(comparison$nlminb - comparison$glm)  # اختلاف بین دو روش
