@@ -1,8 +1,6 @@
 > #Ailar Naeemi Project
 > rm(list= ls())
 > install.packages("readxl")
-d
-
 The downloaded binary packages are in
         C:\Users\Admin\AppData\Local\Temp\RtmpAf3G76\downloaded_packages
 > library(readxl)
@@ -27,14 +25,10 @@ The downloaded binary packages are in
 > data$C1 <- ifelse(data$C == 1,1,0)
 > 
 > S1< <- ifelse(data$S == 1,1,0)
-Error: unexpected assignment in "S1< <-"
 > S1 <- ifelse(data$S == 1,1,0)
 > S2 <- ifelse(data$S == 2,1,0)
 > S3 <- ifelse(data$S == 3,1,0)
 > #Continuous Variables
-> W1 <- data$W1
-Warning message:
-Unknown or uninitialised column: `W1`. 
 > W <- data$W
 > Wt <- data$Wt
 > y <- data$Sa
@@ -63,25 +57,16 @@ Unknown or uninitialised column: `W1`.
 > # Initial Value
 > initial_theta<- rep(0,8)
 > #Optimize 
-> result <- optim(initial_theta, nloglik_poisson, y=y, C2= data$C2, C3= data$C3,C4= data$C4,S2= data$S2,
-+ S3= data$S3, W=W, Wt =Wt, method = "BFGS", hessian= TRUE)
-> estimates <- result$par
-> names(estimates)<- c("beta0","beta1", "beta2", "beta3", "beta4","beta5" , "beta6", "beta7")
-Error: object 'estimates' not found
-> if (!is.null(result$hessian)){
-+ fisher_info<- solve(result$hessian)
-+ se<- sqrt(diag(fisher_info))
-+ names(se)<- names(estimates)
-+ print(se)
-+ glm_fit <- glm(sa -C2+C3+C4+S2+S3+W +Wt,family= poisson(link="log"), data= data)
-+ summary(glm_fit)
-+ #Compare coefficients
-+ comparison<- data.frame(MLE = round(estimate, 4),
-+ GLM= round(coef(glm_fit),4)}
-"comparison<- data.frame(MLE = round(estimate, 4),
-GLM= round(coef(glm_fit),4)}"
-> print(comparison
-+ print(comparison)
-"print(comparison
-print"
+result <- optim(initial_theta, nloglik_Poisson, y=y, C1=data$C1, C2=data$C2, C3=data$C3, 
+                C4=data$C4, S1=data$S1, S2=data$S2, S3=data$S3, W=W, Wt=Wt, 
+                method="BFGS", hessian=TRUE)
+estimates <- result$par
+names(estimates) <- c("beta0","beta1", "beta2", "beta3", "beta4","beta5" , "beta6", "beta7")
+glm_fit <- glm(Sa ~ C2 + C3 + C4 + S2 + S3 + W + Wt, family=poisson(link="log"), data=data)
+comparison <- data.frame(
+  MLE = round(estimates, 4), GLM = round(coef(glm_fit), 4)
+)
+
+print(comparison)
+
 > cat("\nAssigment complete!\n")
