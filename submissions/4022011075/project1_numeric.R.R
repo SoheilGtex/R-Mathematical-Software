@@ -1,4 +1,4 @@
-train_data <- read.csv("Crabs.csv")
+train_data <- read.csv("Crabs 2.csv")
 train_data$C2 <- ifelse(train_data$C == 2, 1, 0)
 train_data$C3 <- ifelse(train_data$C == 3, 1, 0)
 train_data$C4 <- ifelse(train_data$C == 4, 1, 0)
