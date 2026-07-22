@@ -1,0 +1,72 @@
+> #Ailar Naeemi Project
+> rm(list= ls())
+> install.packages("readxl")
+The downloaded binary packages are in
+        C:\Users\Admin\AppData\Local\Temp\RtmpAf3G76\downloaded_packages
+> library(readxl)
+> data<- read_excel("C:/User/Ailar/Downloads/Crabs.xlsx")
+                                                                                                                                                                                                                                                                                                 
+> head(data)
+# A tibble: 6 × 5
+      C     S     W    Wt    Sa
+  <dbl> <dbl> <dbl> <dbl> <dbl>
+1     2     3  28.3  3.05     8
+2     3     3  26    2.6      4
+3     3     3  25.6  2.15     0
+4     4     2  21    1.85     0
+5     2     3  29    3        1
+6     1     2  25    2.3      3
+> names(data)
+[1] "C"  "S"  "W"  "Wt" "Sa"
+> #Creat Dummy Variables
+> data$C2 <- ifelse(data$C==2, 1 ,0)
+> data$C3 <- ifelse(data$C == 3,1,0)
+> data$C4 <- ifelse(data$C == 4,1,0)
+> data$C1 <- ifelse(data$C == 1,1,0)
+> 
+> S1< <- ifelse(data$S == 1,1,0)
+> S1 <- ifelse(data$S == 1,1,0)
+> S2 <- ifelse(data$S == 2,1,0)
+> S3 <- ifelse(data$S == 3,1,0)
+> #Continuous Variables
+> W <- data$W
+> Wt <- data$Wt
+> y <- data$Sa
+> #Negative Log likelihood function
+> nloglik_Poisson<- function(theta, y, C1,C2,C3,C4, S1,S2,S3, W, Wt){
++ beta0 <- theta[1]
++ beta1 <- theta[2]
++ beta2 <- theta[3]
++ beta3 <- theta[4]
++ beta4 <- theta[5]
++ beta5 <- theta[6]
++ beta6 <- theta[7]
++ beta7 <- theta[8]#Wt
++ #Linear Predictor
++ eta <- beta0 + beta1*C2 + beta2*C3 +beta3*C4 + beta4*S2 + beta5*S3 + beta6*W + beta7*Wt
++ #mean
++ lambda<- exp(eta)
++ n<- length(y)
++ log_lik <- 0
++ for ( i in 1:n) { 
++  log_lik <- log_lik + dpois(y[i], lambda[i], log = TRUE)
++  }
++ return(-log_lik)
++ }
+> #Optimization
+> # Initial Value
+> initial_theta<- rep(0,8)
+> #Optimize 
+result <- optim(initial_theta, nloglik_Poisson, y=y, C1=data$C1, C2=data$C2, C3=data$C3, 
+                C4=data$C4, S1=data$S1, S2=data$S2, S3=data$S3, W=W, Wt=Wt, 
+                method="BFGS", hessian=TRUE)
+estimates <- result$par
+names(estimates) <- c("beta0","beta1", "beta2", "beta3", "beta4","beta5" , "beta6", "beta7")
+glm_fit <- glm(Sa ~ C2 + C3 + C4 + S2 + S3 + W + Wt, family=poisson(link="log"), data=data)
+comparison <- data.frame(
+  MLE = round(estimates, 4), GLM = round(coef(glm_fit), 4)
+)
+
+print(comparison)
+
+> cat("\nAssigment complete!\n")
