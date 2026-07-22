@@ -1,0 +1,39 @@
+name: PR Structure and Syntax Check
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  check-submission:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check for modified core files
+        run: |
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only origin/main...${{ github.sha }})
+          for FILE in $CHANGED_FILES; do
+            if [[ ! "$FILE" == submissions/* ]]; then
+              echo "❌ Error: You modified a file outside the 'submissions/' directory: $FILE"
+              exit 1
+            fi
+          done
+          echo "✅ Directory structure is correct."
+
+      - name: Setup R Environment
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - name: Check R Syntax
+        run: |
+          for FILE in $(find submissions/ -name "*.R"); do
+            echo "Checking $FILE..."
+            Rscript -e "source('$FILE', echo=FALSE)" || { echo "❌ Syntax error in $FILE"; exit 1; }
+          done
+          echo "✅ All R scripts passed syntax check."
