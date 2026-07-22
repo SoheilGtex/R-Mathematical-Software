@@ -1,0 +1,91 @@
+getwd()
+library(readxl)
+
+df <- as.data.frame(read_xlsx("Crabs.xlsx"))
+df$C <- factor(df$C)
+df$S <- factor(df$S)
+
+set.seed(42)
+n <- nrow(df)
+train_idx  <- sample(1:n, floor(0.8 * n))
+train_data <- df[train_idx, ]
+test_data  <- df[-train_idx, ]
+
+make_dummies <- function(data) {
+  C_num <- as.numeric(as.character(data$C))
+  S_num <- as.numeric(as.character(data$S))
+
+  data$C2 <- ifelse(C_num == 2, 1, 0)
+  data$C3 <- ifelse(C_num == 3, 1, 0)
+  data$C4 <- ifelse(C_num == 4, 1, 0)
+
+  data$S2 <- ifelse(S_num == 2, 1, 0)
+  data$S3 <- ifelse(S_num == 3, 1, 0)
+
+  return(data)
+}
+
+train_data <- make_dummies(train_data)
+test_data  <- make_dummies(test_data)
+
+nloglik_loglinear <- function(theta, data) {
+  beta0 <- theta[1]
+  beta1 <- theta[2]
+  beta2 <- theta[3]
+  beta3 <- theta[4]
+  beta4 <- theta[5]
+  beta5 <- theta[6]
+  beta6 <- theta[7]
+  beta7 <- theta[8]
+
+  n <- nrow(data)
+  loglik_total <- 0
+
+  for (i in 1:n) {
+    linear_predictor <- beta0 +
+      beta1 * data$C2[i] +
+      beta2 * data$C3[i] +
+      beta3 * data$C4[i] +
+      beta4 * data$S2[i] +
+      beta5 * data$S3[i] +
+      beta6 * data$W[i]  +
+      beta7 * data$Wt[i]
+
+    lambda_i <- exp(linear_predictor)
+    prob_i <- dpois(data$Sa[i], lambda_i)
+    loglik_total <- loglik_total + log(prob_i)
+  }
+
+  return(-loglik_total)
+}
+
+theta0 <- c(log(mean(train_data$Sa)), 0, 0, 0, 0, 0, 0, 0)
+
+fit_manual <- nlminb(
+  start     = theta0,
+  objective = nloglik_loglinear,
+  data      = train_data,
+  lower     = rep(-Inf, 8),
+  upper     = rep(Inf, 8)
+)
+
+beta_hat_manual <- fit_manual$par
+names(beta_hat_manual) <- c("beta0(Intercept)", "beta1(C2)", "beta2(C3)",
+                             "beta3(C4)", "beta4(S2)", "beta5(S3)",
+                             "beta6(W)", "beta7(Wt)")
+print(round(beta_hat_manual, 6))
+
+fit_glm <- glm(Sa ~ C + S + W + Wt, data = train_data,
+                family = poisson(link = "log"))
+summary(fit_glm)
+
+beta_hat_glm <- coef(fit_glm)
+print(round(beta_hat_glm, 6))
+
+comparison <- data.frame(
+  parameter    = names(beta_hat_manual),
+  manual_MLE   = round(as.numeric(beta_hat_manual), 6),
+  glm_estimate = round(as.numeric(beta_hat_glm), 6)
+)
+comparison$difference <- round(comparison$manual_MLE - comparison$glm_estimate, 6)
+print(comparison)
