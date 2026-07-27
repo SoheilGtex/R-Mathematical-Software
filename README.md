@@ -39,8 +39,6 @@ This repository is optimized to give students a hands-on experience while mainta
 
 Students contribute to this repository by solving computational challenges and submitting their analytical reports via Pull Requests. 
 
-### 🏆 Hall of Fame
-*Your contributions will automatically link your GitHub profile below once your PR is reviewed and merged!*
 
 ---
 
@@ -95,9 +93,6 @@ For detailed rules on how to format your directory, write clean commits, and ope
 ## 👥 مشارکت‌کنندگان دوره (دانشجویان)
 
 دانشجویان با حل چالش‌های محاسباتی و ارسال گزارش‌های تحلیلی خود از طریق Pull Request در توسعه این مخزن مشارکت می‌کنند.
-
-### 🏆 تالار افتخارات (Hall of Fame)
-*پس از بررسی و تایید (Merge) درخواست PR شما، پروفایل گیت‌هاب شما به صورت خودکار در این قسمت لینک خواهد شد!*
 
 ---
 
